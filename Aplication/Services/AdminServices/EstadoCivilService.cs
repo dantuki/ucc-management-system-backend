@@ -1,51 +1,90 @@
 using AutoMapper;
 using Domain.DTOs.AdminDTOs;
+using Domain.DTOs.BaseDTOs;
 using Domain.Models.AdminModels;
 using Persistence.Repository.IRepositories.AdminIRepositories;
+using Persistence.Repository.IRepositories.Generic;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace Application.Services.AdminServices
 {
     public class EstadoCivilService : IEstadoCivilService
     {
-        private readonly IEstadoCivilRepository _repository;
+        private readonly IEstadoCivilRepository _estadoCivilRepository;
         private readonly IMapper _mapper;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public EstadoCivilService(IEstadoCivilRepository repository, IMapper mapper)
+        public EstadoCivilService(IEstadoCivilRepository estadoCivilRepository, IMapper mapper, IUnitOfWork unitOfWork)
         {
-            _repository = repository;
+            _estadoCivilRepository = estadoCivilRepository;
             _mapper = mapper;
+            _unitOfWork = unitOfWork;
         }
 
-        public async Task<IEnumerable<EstadoCivilDto>> GetAllAsync()
+        public async Task<ResponseBase<int>> AddAsync(EstadoCivilDto entity)
         {
-            var entities = await _repository.GetAllAsync();
-            return _mapper.Map<IEnumerable<EstadoCivilDto>>(entities);
+            var data = _mapper.Map<EstadoCivil>(entity);
+            data.IdEstadoCivil = 0; 
+            data.Habilitado = true;
+
+            await _estadoCivilRepository.AddAsync(data);
+            await _unitOfWork.CommitAsync();
+            return new ResponseBase<int>(HttpStatusCode.Created, "Registro creado con éxito", data.IdEstadoCivil);
         }
 
-        public async Task<EstadoCivilDto> GetByIdAsync(int id)
+        public async Task<ResponseBase<EstadoCivilDto>> DeleteAsync(int id)
         {
-            // Corregido con el campo exacto de tu modelo: IdEstadoCivil
-            var entity = await _repository.GetAsync(x => x.IdEstadoCivil == id); 
-            return _mapper.Map<EstadoCivilDto>(entity);
+            var registro = await _estadoCivilRepository.GetAsync(x => x.IdEstadoCivil == id);
+            if (registro == null)
+            {
+                return new ResponseBase<EstadoCivilDto>(HttpStatusCode.NotFound, "No existe el ID " + id, null, 0);
+            }
+
+            registro.Habilitado = false;
+            await _estadoCivilRepository.UpdateAsync(registro);
+            await _unitOfWork.CommitAsync();
+
+            var data = _mapper.Map<EstadoCivilDto>(registro);
+            return new ResponseBase<EstadoCivilDto>(HttpStatusCode.OK, "Registro deshabilitado con éxito", data, 1);
         }
 
-        public async Task AddAsync(EstadoCivilDto dto)
+        public async Task<ResponseBase<IEnumerable<EstadoCivilDto>>> GetAllAsync()
         {
-            var entity = _mapper.Map<EstadoCivil>(dto);
-            await _repository.AddAsync(entity);
+            var lista = await _estadoCivilRepository.GetAllAsync();
+            var listaActiva = lista.Where(x => x.Habilitado == true).ToList();
+            var data = _mapper.Map<IEnumerable<EstadoCivilDto>>(listaActiva);
+            return new ResponseBase<IEnumerable<EstadoCivilDto>>(HttpStatusCode.OK, "OK", data, data.Count());
         }
 
-        public async Task UpdateAsync(EstadoCivilDto dto)
+        public async Task<ResponseBase<EstadoCivilDto>> GetByIdAsync(int id)
         {
-            var entity = _mapper.Map<EstadoCivil>(dto);
-            await _repository.UpdateAsync(entity);
+            var registro = await _estadoCivilRepository.GetAsync(x => x.IdEstadoCivil == id && x.Habilitado == true);
+            if (registro == null)
+            {
+                return new ResponseBase<EstadoCivilDto>(HttpStatusCode.NotFound, "El registro no existe o ha sido eliminado", null, 0);
+            }
+
+            var data = _mapper.Map<EstadoCivilDto>(registro);
+            return new ResponseBase<EstadoCivilDto>(HttpStatusCode.OK, "OK", data, 1);
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task<ResponseBase<bool>> UpdateAsync(EstadoCivilDto entity)
         {
-            await _repository.DeleteAsync(id);
+            var check = await _estadoCivilRepository.GetAsync(x => x.IdEstadoCivil == entity.IdEstadoCivil);
+            if (check == null)
+            {
+                return new ResponseBase<bool>(HttpStatusCode.NotFound, "No existe el ID " + entity.IdEstadoCivil, false, 0);
+            }
+            
+            check.Nombre = entity.Nombre;
+            check.Habilitado = entity.Habilitado;
+            
+            await _estadoCivilRepository.UpdateAsync(check);
+            await _unitOfWork.CommitAsync();
+            return new ResponseBase<bool>(HttpStatusCode.OK, "Registro actualizado con éxito", true, 1);
         }
     }
 }

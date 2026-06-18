@@ -1,4 +1,5 @@
 using Domain.DTOs.AdminDTOs;
+using Domain.DTOs.BaseDTOs;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -6,10 +7,10 @@ namespace Application.Services.AdminServices
 {
     public interface IEstadoCivilService
     {
-        Task<IEnumerable<EstadoCivilDto>> GetAllAsync();
-        Task<EstadoCivilDto> GetByIdAsync(int id);
-        Task AddAsync(EstadoCivilDto dto);
-        Task UpdateAsync(EstadoCivilDto dto);
-        Task DeleteAsync(int id);
+        Task<ResponseBase<int>> AddAsync(EstadoCivilDto entity);
+        Task<ResponseBase<EstadoCivilDto>> DeleteAsync(int id);
+        Task<ResponseBase<IEnumerable<EstadoCivilDto>>> GetAllAsync();
+        Task<ResponseBase<EstadoCivilDto>> GetByIdAsync(int id);
+        Task<ResponseBase<bool>> UpdateAsync(EstadoCivilDto entity);
     }
 }

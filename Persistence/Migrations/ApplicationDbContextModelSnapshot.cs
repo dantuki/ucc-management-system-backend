@@ -123,11 +123,6 @@ namespace Persistence.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdEstadoCivil"));
 
-                    b.Property<string>("Descripcion")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("varchar(150)");
-
                     b.Property<bool>("Habilitado")
                         .HasColumnType("tinyint(1)");
 

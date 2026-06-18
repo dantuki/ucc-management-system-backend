@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Domain.Models.GestionModels;
 using Domain.DTOs.GestionDTOs;
+
 namespace Application.Mapping
 {
     public class MappingProfile : Profile
@@ -32,10 +33,11 @@ namespace Application.Mapping
             CreateMap<TipoFormacionRequestDto, TipoFormacionDto>().ReverseMap();
 
             // Mapeos de EstadoCivil
-            CreateMap<EstadoCivilDto, EstadoCivil>().ReverseMap();
+            CreateMap<EstadoCivil, EstadoCivilDto>().ReverseMap();
 
             // Mapeos de Usuario
             CreateMap<UsuarioDto, Usuario>().ReverseMap();
+            
             // Mapeos de Estudiante
             CreateMap<Estudiante, EstudianteDto>().ReverseMap();
             CreateMap<EstudianteRequestDto, Estudiante>();
