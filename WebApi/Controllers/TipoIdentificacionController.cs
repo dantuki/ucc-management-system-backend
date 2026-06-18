@@ -48,8 +48,9 @@ namespace WebApi.Controllers
         }
 
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<ResponseBase<TipoIdentificacionDto>> Delete(int id)
         {
+            return await _service.DeleteAsync(id);
         }
     }
 }

@@ -28,27 +28,46 @@ namespace Application.Services.AdminServices
         public async Task<ResponseBase<int>> AddAsync(TipoFormacionDto entity)
         {
             var data = _mapper.Map<TipoFormacion>(entity);
+            data.IdTipoFormacion = 0;
             data.Habilitado = true;
+
             await _repository.AddAsync(data);
             await _unitOfWork.CommitAsync();
-            return new ResponseBase<int>(HttpStatusCode.Created, "Registro creado", data.IdTipoFormacion);
+            return new ResponseBase<int>(HttpStatusCode.Created, "Registro creado con éxito", data.IdTipoFormacion);
         }
 
-        public Task<ResponseBase<TipoFormacionDto>> DeleteAsync(int id)
+        public async Task<ResponseBase<TipoFormacionDto>> DeleteAsync(int id)
         {
-            throw new NotImplementedException();
+            var registro = await _repository.GetAsync(x => x.IdTipoFormacion == id);
+            if (registro == null)
+            {
+                return new ResponseBase<TipoFormacionDto>(HttpStatusCode.NotFound, "No existe el ID " + id, null, 0);
+            }
+
+            registro.Habilitado = false;
+            await _repository.UpdateAsync(registro);
+            await _unitOfWork.CommitAsync();
+
+            var data = _mapper.Map<TipoFormacionDto>(registro);
+            return new ResponseBase<TipoFormacionDto>(HttpStatusCode.OK, "Registro deshabilitado con éxito", data, 1);
         }
 
         public async Task<ResponseBase<IEnumerable<TipoFormacionDto>>> GetAllAsync()
         {
             var lista = await _repository.GetAllAsync();
-            var data = _mapper.Map<IEnumerable<TipoFormacionDto>>(lista);
+            var listaActiva = lista.Where(x => x.Habilitado == true).ToList();
+            var data = _mapper.Map<IEnumerable<TipoFormacionDto>>(listaActiva);
             return new ResponseBase<IEnumerable<TipoFormacionDto>>(HttpStatusCode.OK, "OK", data, data.Count());
         }
 
         public async Task<ResponseBase<TipoFormacionDto>> GetByIdAsync(int id)
         {
-            var registro = await _repository.GetAsync(x => x.IdTipoFormacion == id);
+            var registro = await _repository.GetAsync(x => x.IdTipoFormacion == id && x.Habilitado == true);
+            if (registro == null)
+            {
+                return new ResponseBase<TipoFormacionDto>(HttpStatusCode.NotFound, "El registro no existe o ha sido eliminado", null, 0);
+            }
+
             var data = _mapper.Map<TipoFormacionDto>(registro);
             return new ResponseBase<TipoFormacionDto>(HttpStatusCode.OK, "OK", data, 1);
         }
@@ -58,17 +77,15 @@ namespace Application.Services.AdminServices
             var check = await _repository.GetAsync(x => x.IdTipoFormacion == entity.IdTipoFormacion);
             if (check == null)
             {
-                return new ResponseBase<bool>(HttpStatusCode.InternalServerError, "No existe el ID " + entity.IdTipoFormacion, false, 0);
+                return new ResponseBase<bool>(HttpStatusCode.NotFound, "No existe el ID " + entity.IdTipoFormacion, false, 0);
             }
-            var data = new TipoFormacion
-            {
-                IdTipoFormacion = entity.IdTipoFormacion,
-                Nombre = entity.Nombre,
-                Habilitado = entity.Habilitado
-            };
-            await _repository.UpdateAsync(data);
+
+            check.Nombre = entity.Nombre;
+            check.Habilitado = entity.Habilitado;
+
+            await _repository.UpdateAsync(check);
             await _unitOfWork.CommitAsync();
-            return new ResponseBase<bool>(HttpStatusCode.OK, "Registro actualizado", true, 1);
+            return new ResponseBase<bool>(HttpStatusCode.OK, "Registro actualizado con éxito", true, 1);
         }
     }
 }
