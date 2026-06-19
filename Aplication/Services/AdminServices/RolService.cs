@@ -2,15 +2,12 @@
 using Domain.DTOs.AdminDTOs;
 using Domain.DTOs.BaseDTOs;
 using Domain.Models.Admin;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Persistence.Repository.IRepositories.AdminIRepositories;
 using Persistence.Repository.IRepositories.Generic;
-using Persistence.Repository.Repositories.BaseRepository;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Application.Services.AdminServices
@@ -31,59 +28,67 @@ namespace Application.Services.AdminServices
         public async Task<ResponseBase<int>> AddAsync(RolDto entity)
         {
             var data = _mapper.Map<Rol>(entity);
+            data.IdRol = 0; // Forzamos el ID en 0 para que la BD autoincremente
             data.Habilitado = true;
 
             await _rolRepository.AddAsync(data);
-
             await _unitOfWork.CommitAsync();
 
-            return new ResponseBase<int>(HttpStatusCode.Created, "Registro creado", data.IdRol);
+            return new ResponseBase<int>(HttpStatusCode.Created, "Registro creado con éxito", data.IdRol);
         }
 
-        public Task<ResponseBase<RolDto>> DeleteAsync(int id)
+        public async Task<ResponseBase<RolDto>> DeleteAsync(int id)
         {
-            throw new NotImplementedException();
+            var registro = await _rolRepository.GetAsync(x => x.IdRol == id);
+            if (registro == null)
+            {
+                return new ResponseBase<RolDto>(HttpStatusCode.NotFound, "No existe el ROL con ID " + id, null, 0);
+            }
+
+            registro.Habilitado = false;
+            await _rolRepository.UpdateAsync(registro);
+            await _unitOfWork.CommitAsync();
+
+            var data = _mapper.Map<RolDto>(registro);
+            return new ResponseBase<RolDto>(HttpStatusCode.OK, "Registro deshabilitado con éxito", data, 1);
         }
 
         public async Task<ResponseBase<IEnumerable<RolDto>>> GetAllAsync()
         {
             var roles = await _rolRepository.GetAllAsync();
-            var data = _mapper.Map<IEnumerable<RolDto>>(roles);
-            return new ResponseBase<IEnumerable<RolDto>>(HttpStatusCode.OK, message: "OK", data, data.Count());
-
+            var rolesActivos = roles.Where(x => x.Habilitado == true).ToList();
+            var data = _mapper.Map<IEnumerable<RolDto>>(rolesActivos);
+            return new ResponseBase<IEnumerable<RolDto>>(HttpStatusCode.OK, "OK", data, data.Count());
         }
 
         public async Task<ResponseBase<RolDto>> GetByIdAsync(int id)
         {
-            var rol = await _rolRepository.GetAsync(x => x.IdRol == id);
+            var rol = await _rolRepository.GetAsync(x => x.IdRol == id && x.Habilitado == true);
+            if (rol == null)
+            {
+                return new ResponseBase<RolDto>(HttpStatusCode.NotFound, "El rol no existe o ha sido deshabilitado", null, 0);
+            }
+
             var data = _mapper.Map<RolDto>(rol);
-            return new ResponseBase<RolDto>(HttpStatusCode.OK, message: "OK", data, 1);
+            return new ResponseBase<RolDto>(HttpStatusCode.OK, "OK", data, 1);
         }
 
         public async Task<ResponseBase<bool>> UpdateAsync(RolDto entity)
         {
-            var rol = GetByIdAsync(entity.IdRol);
-
-            if (rol == null)
+            var check = await _rolRepository.GetAsync(x => x.IdRol == entity.IdRol);
+            if (check == null)
             {
-                return new ResponseBase<bool>(HttpStatusCode.InternalServerError, message: "No existe" +
-                    " el ROL con ID " + entity.IdRol, false, 0);
-
+                return new ResponseBase<bool>(HttpStatusCode.NotFound, "No existe el ROL con ID " + entity.IdRol, false, 0);
             }
-            var data = new Rol
-            {
-                IdRol = entity.IdRol,
-                Nombre = entity.Nombre,
-                Descripcion = entity.Descripcion,
-                Habilitado = entity.Habilitado
-            };
 
-            await _rolRepository.UpdateAsync(data);
+            check.Nombre = entity.Nombre;
+            check.Descripcion = entity.Descripcion;
+            check.Habilitado = entity.Habilitado;
 
+            await _rolRepository.UpdateAsync(check);
             await _unitOfWork.CommitAsync();
 
-            return new ResponseBase<bool>(HttpStatusCode.OK, "Registro actualizado", true, 1);
-
+            return new ResponseBase<bool>(HttpStatusCode.OK, "Registro actualizado con éxito", true, 1);
         }
     }
 }

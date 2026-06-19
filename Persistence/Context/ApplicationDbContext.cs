@@ -23,12 +23,26 @@ namespace Persistence.Context
         public DbSet<Genero> Genero { get; set; }
         public DbSet<TipoIdentificacion> TipoIdentificacion { get; set; }
         public DbSet<TipoFormacion> TipoFormacion { get; set; }
+        public DbSet<Usuario> Usuario { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
             #region ADMIN
+            // Mapeo automático con el diseño de tu draw.io
+            modelBuilder.Entity<Usuario>(entity =>
+            {
+                entity.ToTable("Usuario");
+                entity.HasKey(e => e.IdUsuario);
+                entity.Property(e => e.IdUsuario).HasColumnName("id_usuario");
+                entity.Property(e => e.NombreUsuario).HasColumnName("nombre_usuario");
+                entity.Property(e => e.Contrasena).HasColumnName("contrasena");
+                entity.Property(e => e.Habilitado).HasColumnName("habilitado");
+                entity.Property(e => e.FechaCreacion).HasColumnName("fecha_creacion");
+                entity.Property(e => e.FechaModificacion).HasColumnName("fecha_modificacion");
+            });
+
             new RolConfig(modelBuilder.Entity<Rol>());
             new EstadoCivilConfig(modelBuilder.Entity<EstadoCivil>());
             new GeneroConfig(modelBuilder.Entity<Genero>());

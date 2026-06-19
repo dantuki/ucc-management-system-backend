@@ -1,5 +1,6 @@
 using Application.Services.AdminServices;
 using Domain.DTOs.AdminDTOs;
+using Domain.DTOs.BaseDTOs;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -18,39 +19,34 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UsuarioDto>>> GetAll()
+        public async Task<ResponseBase<IEnumerable<UsuarioDto>>> GetAll()
         {
-            var result = await _service.GetAllAsync();
-            return Ok(result);
+            return await _service.GetAllAsync();
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<UsuarioDto>> GetById(int id)
+        public async Task<ResponseBase<UsuarioDto>> GetById(int id)
         {
-            var result = await _service.GetByIdAsync(id);
-            if (result == null) return NotFound();
-                    return Ok(result);
+            return await _service.GetByIdAsync(id);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(UsuarioDto dto)
+        public async Task<ActionResult<ResponseBase<int>>> Create([FromBody] UsuarioDto dto)
         {
-            await _service.AddAsync(dto);
-            return Ok();
+            var data = await _service.AddAsync(dto);
+            return Ok(data);
         }
 
         [HttpPut]
-        public async Task<IActionResult> Update(UsuarioDto dto)
+        public async Task<ResponseBase<bool>> Update([FromBody] UsuarioDto dto)
         {
-            await _service.UpdateAsync(dto);
-            return Ok();
+            return await _service.UpdateAsync(dto);
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<ResponseBase<UsuarioDto>> Delete(int id)
         {
-            await _service.DeleteAsync(id);
-            return Ok();
+            return await _service.DeleteAsync(id);
         }
     }
 }
