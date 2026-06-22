@@ -503,3 +503,4 @@ Total relaciones detectadas: 68
 - PK | id_usuariorol
 - FK | rol_id
 - FK | usuario_id
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa

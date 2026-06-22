@@ -24,6 +24,7 @@ namespace Persistence.Context
         public DbSet<TipoIdentificacion> TipoIdentificacion { get; set; }
         public DbSet<TipoFormacion> TipoFormacion { get; set; }
         public DbSet<Usuario> Usuario { get; set; }
+        public DbSet<Persona> Persona { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -41,6 +42,40 @@ namespace Persistence.Context
                 entity.Property(e => e.Habilitado).HasColumnName("habilitado");
                 entity.Property(e => e.FechaCreacion).HasColumnName("fecha_creacion");
                 entity.Property(e => e.FechaModificacion).HasColumnName("fecha_modificacion");
+                entity.Property(e => e.IdPersona).HasColumnName("id_persona");
+
+                // Relación 1:1 con Persona (La llave física se queda en la tabla Usuario)
+                entity.HasOne(u => u.Persona)
+                      .WithOne(p => p.Usuario)
+                      .HasForeignKey<Usuario>(u => u.IdPersona)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Mapeo de la nueva entidad Persona siguiendo tu estándar de base de datos
+            modelBuilder.Entity<Persona>(entity =>
+            {
+                entity.ToTable("Persona");
+                entity.HasKey(e => e.IdPersona);
+                entity.Property(e => e.IdPersona).HasColumnName("id_persona");
+                entity.Property(e => e.Nombres).HasColumnName("nombres").IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Apellidos).HasColumnName("apellidos").IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Documento).HasColumnName("documento").IsRequired().HasMaxLength(20);
+                entity.Property(e => e.Correo).HasColumnName("correo").IsRequired().HasMaxLength(150);
+                entity.Property(e => e.Telefono).HasColumnName("telefono").HasMaxLength(20);
+                entity.Property(e => e.IdGenero).HasColumnName("id_genero");
+                entity.Property(e => e.IdEstadoCivil).HasColumnName("id_estado_civil");
+
+                // Relación Persona -> Genero
+                entity.HasOne(p => p.Genero)
+                      .WithMany()
+                      .HasForeignKey(p => p.IdGenero)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                // Relación Persona -> EstadoCivil
+                entity.HasOne(p => p.EstadoCivil)
+                      .WithMany()
+                      .HasForeignKey(p => p.IdEstadoCivil)
+                      .OnDelete(DeleteBehavior.Restrict);
             });
 
             new RolConfig(modelBuilder.Entity<Rol>());

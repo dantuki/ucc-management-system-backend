@@ -137,6 +137,62 @@ namespace Persistence.Migrations
                     b.ToTable("EstadoCivil", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Models.AdminModels.Persona", b =>
+                {
+                    b.Property<int>("IdPersona")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id_persona");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("IdPersona"));
+
+                    b.Property<string>("Apellidos")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("apellidos");
+
+                    b.Property<string>("Correo")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("varchar(150)")
+                        .HasColumnName("correo");
+
+                    b.Property<string>("Documento")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("documento");
+
+                    b.Property<int>("IdEstadoCivil")
+                        .HasColumnType("int")
+                        .HasColumnName("id_estado_civil");
+
+                    b.Property<int>("IdGenero")
+                        .HasColumnType("int")
+                        .HasColumnName("id_genero");
+
+                    b.Property<string>("Nombres")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("nombres");
+
+                    b.Property<string>("Telefono")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("telefono");
+
+                    b.HasKey("IdPersona");
+
+                    b.HasIndex("IdEstadoCivil");
+
+                    b.HasIndex("IdGenero");
+
+                    b.ToTable("Persona", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Models.AdminModels.Usuario", b =>
                 {
                     b.Property<int>("IdUsuario")
@@ -163,6 +219,10 @@ namespace Persistence.Migrations
                         .HasColumnType("tinyint(1)")
                         .HasColumnName("habilitado");
 
+                    b.Property<int>("IdPersona")
+                        .HasColumnType("int")
+                        .HasColumnName("id_persona");
+
                     b.Property<string>("NombreUsuario")
                         .IsRequired()
                         .HasColumnType("longtext")
@@ -170,7 +230,45 @@ namespace Persistence.Migrations
 
                     b.HasKey("IdUsuario");
 
+                    b.HasIndex("IdPersona")
+                        .IsUnique();
+
                     b.ToTable("Usuario", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Models.AdminModels.Persona", b =>
+                {
+                    b.HasOne("Domain.Models.AdminModels.EstadoCivil", "EstadoCivil")
+                        .WithMany()
+                        .HasForeignKey("IdEstadoCivil")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Models.Admin.Genero", "Genero")
+                        .WithMany()
+                        .HasForeignKey("IdGenero")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("EstadoCivil");
+
+                    b.Navigation("Genero");
+                });
+
+            modelBuilder.Entity("Domain.Models.AdminModels.Usuario", b =>
+                {
+                    b.HasOne("Domain.Models.AdminModels.Persona", "Persona")
+                        .WithOne("Usuario")
+                        .HasForeignKey("Domain.Models.AdminModels.Usuario", "IdPersona")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Persona");
+                });
+
+            modelBuilder.Entity("Domain.Models.AdminModels.Persona", b =>
+                {
+                    b.Navigation("Usuario");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
-using Domain.DTOs.AdminDTOs;
+using Domain.DTOs.AdminDTOs; // El original que necesitan Rol, Genero, Usuario, etc.
+using Domain.Dtos.AdminDtos; // El específico con minúsculas que necesita únicamente PersonaDto
 using Domain.Models.Admin; 
 using Domain.Models.AdminModels; 
 using System;
@@ -41,6 +42,11 @@ namespace Application.Mapping
             // Mapeos de Estudiante
             CreateMap<Estudiante, EstudianteDto>().ReverseMap();
             CreateMap<EstudianteRequestDto, Estudiante>();
+
+            // ==========================================
+            // MAPEOS DE PERSONA
+            // ==========================================
+            CreateMap<Persona, PersonaDto>().ReverseMap();
         }
     }
 }
