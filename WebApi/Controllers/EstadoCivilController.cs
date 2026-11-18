@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Domain.DTOs.AdminDTOs;
 using Application.Services.AdminServices;
 using System.Threading.Tasks;
@@ -7,6 +8,7 @@ namespace WebApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class EstadoCivilController : ControllerBase
     {
         private readonly IEstadoCivilService _service;

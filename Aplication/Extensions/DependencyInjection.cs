@@ -5,6 +5,7 @@ using Application.Services.GestionServices;
 using Application.Services.Security;
 using AutoMapper;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Persistence.Context;
 using Persistence.Repository.IRepositories.AdminIRepositories;
 using Persistence.Repository.IRepositories.BaseRepository;
@@ -59,7 +60,7 @@ namespace Application.Extensions
             var mapperConfiguration = new MapperConfiguration(configurationExpression =>
             {
                 configurationExpression.AddProfile(new MappingProfile());
-            });
+            }, NullLoggerFactory.Instance);
             services.AddSingleton(prop => mapperConfiguration.CreateMapper());
             return services;
         }
