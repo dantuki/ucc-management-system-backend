@@ -91,6 +91,12 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapHealthChecks("/health").AllowAnonymous();
+app.MapGet("/health/ready", async (ApplicationDbContext db, CancellationToken cancellationToken) =>
+    await db.Database.CanConnectAsync(cancellationToken)
+        ? Results.Ok(new { status = "ready" })
+        : Results.StatusCode(StatusCodes.Status503ServiceUnavailable))
+    .AllowAnonymous()
+    .RequireRateLimiting("api");
 app.MapControllers().RequireRateLimiting("api");
 
 app.Run();

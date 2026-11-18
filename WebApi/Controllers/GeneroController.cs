@@ -1,12 +1,14 @@
 using Application.Services.AdminServices;
 using Domain.DTOs.AdminDTOs;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using System.Threading.Tasks;
 
 namespace WebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class GeneroController : ControllerBase
     {
         private readonly IGeneroService _generoService;
