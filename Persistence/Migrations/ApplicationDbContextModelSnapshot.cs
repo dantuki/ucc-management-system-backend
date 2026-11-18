@@ -236,6 +236,85 @@ namespace Persistence.Migrations
                     b.ToTable("Usuario", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Models.GestionModels.Estudiante", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id_estudiante");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Apellidos")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("apellidos");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("varchar(30)")
+                        .HasColumnName("codigo");
+
+                    b.Property<string>("Correo")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("varchar(150)")
+                        .HasColumnName("correo");
+
+                    b.Property<string>("Documento")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("documento");
+
+                    b.Property<int>("EstadoCivilId")
+                        .HasColumnType("int")
+                        .HasColumnName("id_estado_civil");
+
+                    b.Property<DateTime>("FechaNacimiento")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("fecha_nacimiento");
+
+                    b.Property<int>("GeneroId")
+                        .HasColumnType("int")
+                        .HasColumnName("id_genero");
+
+                    b.Property<string>("Nombres")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("nombres");
+
+                    b.Property<int>("TipoIdentificacionId")
+                        .HasColumnType("int")
+                        .HasColumnName("id_tipo_identificacion");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int")
+                        .HasColumnName("id_usuario");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique();
+
+                    b.HasIndex("Documento")
+                        .IsUnique();
+
+                    b.HasIndex("EstadoCivilId");
+
+                    b.HasIndex("GeneroId");
+
+                    b.HasIndex("TipoIdentificacionId");
+
+                    b.HasIndex("UsuarioId")
+                        .IsUnique();
+
+                    b.ToTable("Estudiante", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Models.AdminModels.Persona", b =>
                 {
                     b.HasOne("Domain.Models.AdminModels.EstadoCivil", "EstadoCivil")
@@ -264,6 +343,41 @@ namespace Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Persona");
+                });
+
+            modelBuilder.Entity("Domain.Models.GestionModels.Estudiante", b =>
+                {
+                    b.HasOne("Domain.Models.AdminModels.EstadoCivil", "EstadoCivil")
+                        .WithMany()
+                        .HasForeignKey("EstadoCivilId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Models.Admin.Genero", "Genero")
+                        .WithMany()
+                        .HasForeignKey("GeneroId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Models.Admin.TipoIdentificacion", "TipoIdentificacion")
+                        .WithMany()
+                        .HasForeignKey("TipoIdentificacionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Models.AdminModels.Usuario", "Usuario")
+                        .WithOne()
+                        .HasForeignKey("Domain.Models.GestionModels.Estudiante", "UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("EstadoCivil");
+
+                    b.Navigation("Genero");
+
+                    b.Navigation("TipoIdentificacion");
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("Domain.Models.AdminModels.Persona", b =>
