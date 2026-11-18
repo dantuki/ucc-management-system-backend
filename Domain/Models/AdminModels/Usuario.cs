@@ -12,5 +12,6 @@ namespace Domain.Models.AdminModels
         public DateTime? FechaModificacion { get; set; }
         public int IdPersona { get; set; }
         public Persona? Persona { get; set; }
+        public ICollection<Domain.Models.Admin.UserRole> UserRoles { get; set; } = [];
     }
 }

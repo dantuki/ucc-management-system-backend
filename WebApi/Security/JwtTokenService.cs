@@ -12,8 +12,12 @@ public sealed class JwtTokenService(JwtSettings settings)
     {
         var expiresAt = DateTime.UtcNow.AddMinutes(settings.ExpirationMinutes);
         var credentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.SigningKey)), SecurityAlgorithms.HmacSha256);
-        var token = new JwtSecurityToken(settings.Issuer, settings.Audience,
-            [new Claim(ClaimTypes.NameIdentifier, user.IdUsuario.ToString()), new Claim(ClaimTypes.Name, user.NombreUsuario)],
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, user.IdUsuario.ToString()),
+            new Claim(JwtRegisteredClaimNames.UniqueName, user.NombreUsuario)
+        };
+        var token = new JwtSecurityToken(settings.Issuer, settings.Audience, claims: claims,
             expires: expiresAt, signingCredentials: credentials);
         return new AuthTokenResponse(new JwtSecurityTokenHandler().WriteToken(token), expiresAt, user);
     }

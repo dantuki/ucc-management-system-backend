@@ -27,6 +27,9 @@ namespace Persistence.Context
         public DbSet<Usuario> Usuario { get; set; }
         public DbSet<Persona> Persona { get; set; }
         public DbSet<Estudiante> Estudiante { get; set; }
+        public DbSet<Permission> Permission { get; set; }
+        public DbSet<UserRole> UserRole { get; set; }
+        public DbSet<RolePermission> RolePermission { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -78,6 +81,9 @@ namespace Persistence.Context
                       .WithMany()
                       .HasForeignKey(p => p.IdEstadoCivil)
                       .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasIndex(p => p.Documento).IsUnique();
+                entity.HasIndex(p => p.Correo).IsUnique();
             });
 
             new RolConfig(modelBuilder.Entity<Rol>());
@@ -88,6 +94,45 @@ namespace Persistence.Context
             #endregion
 
             new EstudianteConfig(modelBuilder.Entity<Estudiante>());
+
+            modelBuilder.Entity<Permission>(entity =>
+            {
+                entity.ToTable("Permission");
+                entity.HasKey(permission => permission.Code);
+                entity.Property(permission => permission.Code).HasMaxLength(64);
+                entity.Property(permission => permission.Description).HasMaxLength(160).IsRequired();
+                entity.HasData(Domain.Security.PermissionCodes.All.Select(permission =>
+                    new Permission { Code = permission.Key, Description = permission.Value }));
+            });
+
+            modelBuilder.Entity<UserRole>(entity =>
+            {
+                entity.ToTable("UsuarioRol");
+                entity.HasKey(userRole => new { userRole.IdUsuario, userRole.IdRol });
+                entity.HasOne(userRole => userRole.User)
+                    .WithMany(user => user.UserRoles)
+                    .HasForeignKey(userRole => userRole.IdUsuario)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(userRole => userRole.Role)
+                    .WithMany(role => role.UserRoles)
+                    .HasForeignKey(userRole => userRole.IdRol)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<RolePermission>(entity =>
+            {
+                entity.ToTable("RolPermiso");
+                entity.HasKey(rolePermission => new { rolePermission.IdRol, rolePermission.PermissionCode });
+                entity.Property(rolePermission => rolePermission.PermissionCode).HasMaxLength(64);
+                entity.HasOne(rolePermission => rolePermission.Role)
+                    .WithMany(role => role.RolePermissions)
+                    .HasForeignKey(rolePermission => rolePermission.IdRol)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(rolePermission => rolePermission.Permission)
+                    .WithMany(permission => permission.RolePermissions)
+                    .HasForeignKey(rolePermission => rolePermission.PermissionCode)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
         }
 
         public void Commit()

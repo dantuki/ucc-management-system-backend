@@ -13,5 +13,7 @@ namespace Domain.Models.Admin
         public string Nombre { get; set; }
         public string Descripcion { get; set; }
         public bool Habilitado { get; set; }
+        public ICollection<RolePermission> RolePermissions { get; set; } = [];
+        public ICollection<UserRole> UserRoles { get; set; } = [];
     }
 }

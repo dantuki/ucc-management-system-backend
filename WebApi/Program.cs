@@ -6,9 +6,19 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Persistence.Context;
 using Application.Extensions;
+using Domain.Security;
+using Microsoft.AspNetCore.Authorization;
 using WebApi.Security;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var bootstrapToken = builder.Configuration["Bootstrap:Token"];
+if (!string.IsNullOrEmpty(bootstrapToken) &&
+    (!builder.Environment.IsDevelopment() || bootstrapToken.Length < 32))
+{
+    throw new InvalidOperationException(
+        "Bootstrap:Token is only supported in Development and must contain at least 32 characters.");
+}
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(connectionString))
@@ -44,7 +54,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SigningKey)),
         ClockSkew = TimeSpan.FromMinutes(1)
     });
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    foreach (var permissionCode in PermissionCodes.All.Keys)
+    {
+        options.AddPolicy(permissionCode, policy =>
+            policy.Requirements.Add(new PermissionRequirement(permissionCode)));
+    }
+});
+builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 builder.Services.AddRateLimiter(options => options.AddFixedWindowLimiter("api", limiter =>
 {
     limiter.PermitLimit = 100;

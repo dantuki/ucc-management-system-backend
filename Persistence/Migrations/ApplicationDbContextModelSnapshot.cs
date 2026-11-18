@@ -43,6 +43,79 @@ namespace Persistence.Migrations
                     b.ToTable("Genero", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Models.Admin.Permission", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("varchar(160)");
+
+                    b.HasKey("Code");
+
+                    b.ToTable("Permission", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Code = "catalogs.read",
+                            Description = "Read reference catalogs"
+                        },
+                        new
+                        {
+                            Code = "catalogs.write",
+                            Description = "Manage reference catalogs"
+                        },
+                        new
+                        {
+                            Code = "people.read",
+                            Description = "Read people"
+                        },
+                        new
+                        {
+                            Code = "people.write",
+                            Description = "Manage people"
+                        },
+                        new
+                        {
+                            Code = "users.read",
+                            Description = "Read users"
+                        },
+                        new
+                        {
+                            Code = "users.write",
+                            Description = "Manage users"
+                        },
+                        new
+                        {
+                            Code = "students.read",
+                            Description = "Read students"
+                        },
+                        new
+                        {
+                            Code = "students.write",
+                            Description = "Manage students"
+                        },
+                        new
+                        {
+                            Code = "roles.read",
+                            Description = "Read roles"
+                        },
+                        new
+                        {
+                            Code = "roles.write",
+                            Description = "Manage roles"
+                        },
+                        new
+                        {
+                            Code = "rbac.manage",
+                            Description = "Assign roles and permissions"
+                        });
+                });
+
             modelBuilder.Entity("Domain.Models.Admin.Rol", b =>
                 {
                     b.Property<int>("IdRol")
@@ -67,6 +140,22 @@ namespace Persistence.Migrations
                     b.HasKey("IdRol");
 
                     b.ToTable("admin.Rol", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Models.Admin.RolePermission", b =>
+                {
+                    b.Property<int>("IdRol")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PermissionCode")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.HasKey("IdRol", "PermissionCode");
+
+                    b.HasIndex("PermissionCode");
+
+                    b.ToTable("RolPermiso", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Models.Admin.TipoFormacion", b =>
@@ -114,6 +203,21 @@ namespace Persistence.Migrations
                     b.HasKey("IdTipoIdentificacion");
 
                     b.ToTable("TipoIdentificacion", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Models.Admin.UserRole", b =>
+                {
+                    b.Property<int>("IdUsuario")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IdRol")
+                        .HasColumnType("int");
+
+                    b.HasKey("IdUsuario", "IdRol");
+
+                    b.HasIndex("IdRol");
+
+                    b.ToTable("UsuarioRol", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Models.AdminModels.EstadoCivil", b =>
@@ -185,6 +289,12 @@ namespace Persistence.Migrations
                         .HasColumnName("telefono");
 
                     b.HasKey("IdPersona");
+
+                    b.HasIndex("Correo")
+                        .IsUnique();
+
+                    b.HasIndex("Documento")
+                        .IsUnique();
 
                     b.HasIndex("IdEstadoCivil");
 
@@ -315,6 +425,44 @@ namespace Persistence.Migrations
                     b.ToTable("Estudiante", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Models.Admin.RolePermission", b =>
+                {
+                    b.HasOne("Domain.Models.Admin.Rol", "Role")
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("IdRol")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Models.Admin.Permission", "Permission")
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("PermissionCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Permission");
+
+                    b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("Domain.Models.Admin.UserRole", b =>
+                {
+                    b.HasOne("Domain.Models.Admin.Rol", "Role")
+                        .WithMany("UserRoles")
+                        .HasForeignKey("IdRol")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Models.AdminModels.Usuario", "User")
+                        .WithMany("UserRoles")
+                        .HasForeignKey("IdUsuario")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Role");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Domain.Models.AdminModels.Persona", b =>
                 {
                     b.HasOne("Domain.Models.AdminModels.EstadoCivil", "EstadoCivil")
@@ -380,9 +528,26 @@ namespace Persistence.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("Domain.Models.Admin.Permission", b =>
+                {
+                    b.Navigation("RolePermissions");
+                });
+
+            modelBuilder.Entity("Domain.Models.Admin.Rol", b =>
+                {
+                    b.Navigation("RolePermissions");
+
+                    b.Navigation("UserRoles");
+                });
+
             modelBuilder.Entity("Domain.Models.AdminModels.Persona", b =>
                 {
                     b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("Domain.Models.AdminModels.Usuario", b =>
+                {
+                    b.Navigation("UserRoles");
                 });
 #pragma warning restore 612, 618
         }

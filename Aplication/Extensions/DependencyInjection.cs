@@ -37,6 +37,7 @@ namespace Application.Extensions
             services.AddScoped<IUsuarioService, UsuarioService>();
             services.AddScoped<IPersonaService, PersonaService>();
             services.AddScoped<IEstudianteService, EstudianteService>();
+            services.AddScoped<IRbacService, RbacService>();
             services.AddSingleton<IPasswordHashingService, PasswordHashingService>();
             #endregion
 

@@ -2,6 +2,7 @@ using Application.Services.AdminServices;
 using Domain.Dtos.AdminDtos;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Domain.Security;
 
 namespace WebApi.Controllers
 {
@@ -18,6 +19,7 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = PermissionCodes.PeopleRead)]
         public async Task<IActionResult> GetAll()
         {
             var result = await _personaService.GetAllAsync();
@@ -25,6 +27,7 @@ namespace WebApi.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Policy = PermissionCodes.PeopleRead)]
         public async Task<IActionResult> GetById(int id)
         {
             var result = await _personaService.GetByIdAsync(id);
@@ -33,12 +36,14 @@ namespace WebApi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = PermissionCodes.PeopleWrite)]
         public async Task<IActionResult> Create([FromBody] PersonaDto request)
         {
             var result = await _personaService.CreateAsync(request);
             return CreatedAtAction(nameof(GetById), new { id = result.IdPersona }, result);
         }
         [HttpPut("{id}")]
+        [Authorize(Policy = PermissionCodes.PeopleWrite)]
         public async Task<IActionResult> Update(int id, PersonaDto request)
         {
             var result = await _personaService.UpdateAsync(id, request);
@@ -47,6 +52,7 @@ namespace WebApi.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = PermissionCodes.PeopleWrite)]
         public async Task<IActionResult> Delete(int id)
         {
             var result = await _personaService.DeleteAsync(id);

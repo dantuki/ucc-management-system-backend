@@ -3,6 +3,7 @@ using Domain.DTOs.GestionDTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Threading.Tasks;
+using Domain.Security;
 
 namespace WebApi.Controllers.GestionControllers
 {
@@ -19,6 +20,7 @@ namespace WebApi.Controllers.GestionControllers
         }
 
         [HttpGet]
+        [Authorize(Policy = PermissionCodes.StudentsRead)]
         public async Task<IActionResult> GetAll()
         {
             var estudiantes = await _estudianteService.GetAllAsync();
@@ -26,6 +28,7 @@ namespace WebApi.Controllers.GestionControllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Policy = PermissionCodes.StudentsRead)]
         public async Task<IActionResult> GetById(int id)
         {
             var estudiante = await _estudianteService.GetByIdAsync(id);
@@ -34,6 +37,7 @@ namespace WebApi.Controllers.GestionControllers
         }
 
         [HttpPost]
+        [Authorize(Policy = PermissionCodes.StudentsWrite)]
         public async Task<IActionResult> Create([FromBody] EstudianteRequestDto request)
         {
             var nuevoEstudiante = await _estudianteService.CreateAsync(request);
@@ -41,6 +45,7 @@ namespace WebApi.Controllers.GestionControllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Policy = PermissionCodes.StudentsWrite)]
         public async Task<IActionResult> Update(int id, [FromBody] EstudianteRequestDto request)
         {
             var actualizado = await _estudianteService.UpdateAsync(id, request);
@@ -49,6 +54,7 @@ namespace WebApi.Controllers.GestionControllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = PermissionCodes.StudentsWrite)]
         public async Task<IActionResult> Delete(int id)
         {
             var eliminado = await _estudianteService.DeleteAsync(id);
