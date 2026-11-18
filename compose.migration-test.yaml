@@ -1,0 +1,24 @@
+services:
+  mysql:
+    image: mysql:8.0.46
+    container_name: siga-ucc-migration-verify-mysql
+    restart: "no"
+    environment:
+      MYSQL_DATABASE: ${MIGRATION_TEST_DATABASE:-siga_ucc_migration_test}
+      MYSQL_USER: ${MIGRATION_TEST_USER:-siga_migration}
+      MYSQL_PASSWORD: ${MIGRATION_TEST_MYSQL_PASSWORD:?Set MIGRATION_TEST_MYSQL_PASSWORD in the current shell.}
+      MYSQL_ROOT_PASSWORD: ${MIGRATION_TEST_MYSQL_ROOT_PASSWORD:?Set MIGRATION_TEST_MYSQL_ROOT_PASSWORD in the current shell.}
+    ports:
+      - "127.0.0.1:${MIGRATION_TEST_MYSQL_PORT:-3309}:3306"
+    volumes:
+      - siga-ucc-migration-verify-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+
+volumes:
+  siga-ucc-migration-verify-data:
+    name: siga-ucc-migration-verify-data
