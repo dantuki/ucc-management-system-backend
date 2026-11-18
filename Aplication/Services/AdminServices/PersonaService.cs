@@ -3,6 +3,7 @@ using Application.Services.AdminServices;
 using Domain.Dtos.AdminDtos;
 using Domain.Models.AdminModels;
 using Persistence.Repository.IRepositories.AdminIRepositories;
+using Persistence.Repository.IRepositories.Generic;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -12,11 +13,13 @@ namespace Application.Services.AdminServices
     {
         private readonly IPersonaRepository _personaRepository;
         private readonly IMapper _mapper;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public PersonaService(IPersonaRepository personaRepository, IMapper mapper)
+        public PersonaService(IPersonaRepository personaRepository, IMapper mapper, IUnitOfWork unitOfWork)
         {
             _personaRepository = personaRepository;
             _mapper = mapper;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<IEnumerable<PersonaDto>> GetAllAsync()
@@ -33,8 +36,16 @@ namespace Application.Services.AdminServices
 
         public async Task<PersonaDto> CreateAsync(PersonaDto request)
         {
+            request.Correo = request.Correo.Trim().ToLowerInvariant();
+            request.Documento = request.Documento.Trim();
+            if (await _personaRepository.ExistsAsync(x => x.Documento == request.Documento || x.Correo == request.Correo))
+            {
+                throw new InvalidOperationException("Ya existe una persona con el documento o correo indicado.");
+            }
+
             var persona = _mapper.Map<Persona>(request);
             await _personaRepository.AddAsync(persona);
+            await _unitOfWork.CommitAsync();
             return _mapper.Map<PersonaDto>(persona);
         }
 
@@ -43,8 +54,16 @@ namespace Application.Services.AdminServices
             var personaExistente = await _personaRepository.FindByIdAsync(id);
             if (personaExistente == null) return false;
 
+            request.Correo = request.Correo.Trim().ToLowerInvariant();
+            request.Documento = request.Documento.Trim();
+            if (await _personaRepository.ExistsAsync(x => x.IdPersona != id && (x.Documento == request.Documento || x.Correo == request.Correo)))
+            {
+                throw new InvalidOperationException("Ya existe una persona con el documento o correo indicado.");
+            }
+
             _mapper.Map(request, personaExistente);
             await _personaRepository.UpdateAsync(personaExistente);
+            await _unitOfWork.CommitAsync();
             return true;
         }
 
@@ -54,6 +73,7 @@ namespace Application.Services.AdminServices
             if (persona == null) return false;
 
             await _personaRepository.DeleteAsync(persona);
+            await _unitOfWork.CommitAsync();
             return true;
         }
     }

@@ -10,7 +10,7 @@ namespace Persistence.Repository.IRepositories.Generic
     public interface IUnitOfWork : IDisposable
     {
         void Commit();
-        Task CommitAsync();
+        Task CommitAsync(CancellationToken cancellationToken = default);
         DbContext GetContext();
         DbSet<TEntity> GetSet<TId, TEntity>()
             where TId : struct

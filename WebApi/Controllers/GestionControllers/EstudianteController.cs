@@ -1,12 +1,14 @@
 using Application.Services.GestionServices;
 using Domain.DTOs.GestionDTOs;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using System.Threading.Tasks;
 
 namespace WebApi.Controllers.GestionControllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class EstudianteController : ControllerBase
     {
         private readonly IEstudianteService _estudianteService;

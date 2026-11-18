@@ -1,6 +1,8 @@
 ﻿using Application.Mapping;
 using Application.Services.AdminServices;
 using Application.Services.Generic;
+using Application.Services.GestionServices;
+using Application.Services.Security;
 using AutoMapper;
 using Microsoft.Extensions.DependencyInjection;
 using Persistence.Context;
@@ -9,6 +11,8 @@ using Persistence.Repository.IRepositories.BaseRepository;
 using Persistence.Repository.IRepositories.Generic;
 using Persistence.Repository.Repositories.AdminRepositories;
 using Persistence.Repository.Repositories.BaseRepository;
+using Persistence.Repository.IRepositories.GestionIRepositories;
+using Persistence.Repository.Repositories.GestionRepositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,6 +34,9 @@ namespace Application.Extensions
             services.AddScoped<ITipoFormacionService, TipoFormacionService>();
             services.AddScoped<IEstadoCivilService, EstadoCivilService>();
             services.AddScoped<IUsuarioService, UsuarioService>();
+            services.AddScoped<IPersonaService, PersonaService>();
+            services.AddScoped<IEstudianteService, EstudianteService>();
+            services.AddSingleton<IPasswordHashingService, PasswordHashingService>();
             #endregion
 
             #region REPOSITORIES
@@ -40,6 +47,8 @@ namespace Application.Extensions
             services.AddScoped<ITipoFormacionRepository, TipoFormacionRepository>();
             services.AddScoped<IEstadoCivilRepository, EstadoCivilRepository>();
             services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+            services.AddScoped<IPersonaRepository, PersonaRepository>();
+            services.AddScoped<IEstudianteRepository, EstudianteRepository>();
             #endregion
 
             return services;

@@ -4,6 +4,7 @@ using Domain.DTOs.BaseDTOs;
 using Domain.Models.AdminModels;
 using Persistence.Repository.IRepositories.AdminIRepositories;
 using Persistence.Repository.IRepositories.Generic;
+using Application.Services.Security;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,20 +18,27 @@ namespace Application.Services.AdminServices
         private readonly IUsuarioRepository _repository;
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IPasswordHashingService _passwordHashingService;
 
-        public UsuarioService(IUsuarioRepository repository, IMapper mapper, IUnitOfWork unitOfWork)
+        public UsuarioService(IUsuarioRepository repository, IMapper mapper, IUnitOfWork unitOfWork, IPasswordHashingService passwordHashingService)
         {
             _repository = repository;
             _mapper = mapper;
             _unitOfWork = unitOfWork;
+            _passwordHashingService = passwordHashingService;
         }
 
-        public async Task<ResponseBase<int>> AddAsync(UsuarioDto dto)
+        public async Task<ResponseBase<int>> AddAsync(UsuarioCreateRequestDto dto)
         {
-            var entity = _mapper.Map<Usuario>(dto);
+            var entity = new Usuario
+            {
+                NombreUsuario = dto.NombreUsuario.Trim(),
+                IdPersona = dto.IdPersona
+            };
             entity.IdUsuario = 0; // Forzamos autoincremento en base de datos
             entity.Habilitado = true;
-            entity.FechaCreacion = DateTime.Now;
+            entity.FechaCreacion = DateTime.UtcNow;
+            entity.Contrasena = _passwordHashingService.Hash(entity, dto.Contrasena);
 
             await _repository.AddAsync(entity);
             await _unitOfWork.CommitAsync();
@@ -47,7 +55,7 @@ namespace Application.Services.AdminServices
             }
 
             registro.Habilitado = false;
-            registro.FechaModificacion = DateTime.Now;
+            registro.FechaModificacion = DateTime.UtcNow;
 
             await _repository.UpdateAsync(registro);
             await _unitOfWork.CommitAsync();
@@ -77,23 +85,38 @@ namespace Application.Services.AdminServices
             return new ResponseBase<UsuarioDto>(HttpStatusCode.OK, "OK", data, 1);
         }
 
-        public async Task<ResponseBase<bool>> UpdateAsync(UsuarioDto dto)
+        public async Task<ResponseBase<bool>> UpdateAsync(int id, UsuarioUpdateRequestDto dto)
         {
-            var check = await _repository.GetAsync(x => x.IdUsuario == dto.IdUsuario);
+            var check = await _repository.GetAsync(x => x.IdUsuario == id);
             if (check == null)
             {
-                return new ResponseBase<bool>(HttpStatusCode.NotFound, "No existe el usuario con ID " + dto.IdUsuario, false, 0);
+                return new ResponseBase<bool>(HttpStatusCode.NotFound, "No existe el usuario con ID " + id, false, 0);
             }
 
-            check.NombreUsuario = dto.NombreUsuario;
-            check.Contrasena = dto.Contrasena; // Asignación directa por ahora (luego manejamos hashing)
+            check.NombreUsuario = dto.NombreUsuario.Trim();
+            if (!string.IsNullOrWhiteSpace(dto.Contrasena))
+            {
+                check.Contrasena = _passwordHashingService.Hash(check, dto.Contrasena);
+            }
             check.Habilitado = dto.Habilitado;
-            check.FechaModificacion = DateTime.Now;
+            check.FechaModificacion = DateTime.UtcNow;
 
             await _repository.UpdateAsync(check);
             await _unitOfWork.CommitAsync();
 
             return new ResponseBase<bool>(HttpStatusCode.OK, "Usuario actualizado con éxito", true, 1);
+        }
+
+        public async Task<UsuarioDto?> AuthenticateAsync(string nombreUsuario, string contrasena)
+        {
+            var userName = nombreUsuario.Trim();
+            var user = await _repository.GetAsync(x => x.NombreUsuario == userName && x.Habilitado);
+            if (user == null || string.IsNullOrWhiteSpace(user.Contrasena) || !_passwordHashingService.Verify(user, contrasena))
+            {
+                return null;
+            }
+
+            return _mapper.Map<UsuarioDto>(user);
         }
     }
 }
