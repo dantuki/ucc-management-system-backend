@@ -43,10 +43,9 @@ namespace Persistence.Repository.Repositories.BaseRepository
         public async Task<int> CountAsync(Expression<Func<TEntity, bool>>? filter = null)
             => await BuildQuery(filter).CountAsync();
 
-        public async Task<TEntity> FindByIdAsync(TId id)
+        public async Task<TEntity?> FindByIdAsync(TId id)
         {
-            var entity = await _unitOfWork.GetSet<TId, TEntity>().FindAsync(id);
-            return entity!;
+            return await _unitOfWork.GetSet<TId, TEntity>().FindAsync(id);
         }
 
         public Task<bool> DeleteAsync(TEntity entity)
@@ -59,7 +58,11 @@ namespace Persistence.Repository.Repositories.BaseRepository
         public async Task<bool> DeleteAsync(TId Id)
         {
             var item = await FindByIdAsync(Id);
-            ValidateEntity(item);
+            if (item is null)
+            {
+                return false;
+            }
+
             return await DeleteAsync(item);
         }
 
@@ -71,13 +74,20 @@ namespace Persistence.Repository.Repositories.BaseRepository
                 : await query.AnyAsync(whereCondition);
         }
 
-        public async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>>? filter = null, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> include = null, string includeProperties = "")
+        public async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>>? filter = null, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null, string includeProperties = "")
             => await BuildQuery(filter, orderBy, include, includeProperties).ToListAsync();
 
         public async Task<IEnumerable<TEntity>> GetAllPagedAsync(int take, int skip, Expression<Func<TEntity, bool>>? filter = null, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null, string includeProperties = "")
-            => await BuildQuery(filter, orderBy, null, includeProperties).Skip(skip).Take(take).ToListAsync();
+        {
+            if (orderBy is null)
+            {
+                throw new ArgumentException("Paged queries require a deterministic order.", nameof(orderBy));
+            }
 
-        public async Task<TEntity> GetAsync(Expression<Func<TEntity, bool>> predicate = null, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null, Expression<Func<TEntity, TEntity>> selector = null, string includeProperties = "")
+            return await BuildQuery(filter, orderBy, null, includeProperties).Skip(skip).Take(take).ToListAsync();
+        }
+
+        public async Task<TEntity?> GetAsync(Expression<Func<TEntity, bool>>? predicate = null, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null, Expression<Func<TEntity, TEntity>>? selector = null, string includeProperties = "")
         {
             IQueryable<TEntity> query = _unitOfWork.GetSet<TId, TEntity>().AsNoTracking();
 
@@ -116,21 +126,18 @@ namespace Persistence.Repository.Repositories.BaseRepository
             return Task.CompletedTask;
         }
 
-        public async Task UpdateRangeAsync(IEnumerable<TEntity> entities)
+        public Task UpdateRangeAsync(IEnumerable<TEntity> entities)
         {
             ValidateRangeEntities(entities);
 
-            foreach (var entity in entities)
-            {
-                _unitOfWork.GetSet<TId, TEntity>().Update(entity);
-                await _unitOfWork.GetContext().SaveChangesAsync();
-            }
+            _unitOfWork.GetSet<TId, TEntity>().UpdateRange(entities);
+            return Task.CompletedTask;
         }
 
         private IQueryable<TEntity> BuildQuery(
             Expression<Func<TEntity, bool>>? filter = null,
             Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null,
-            Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> include = null,
+            Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null,
             string includeProperties = "")
         {
             var query = _unitOfWork.GetSet<TId, TEntity>().AsNoTracking();

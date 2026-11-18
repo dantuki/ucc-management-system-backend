@@ -1,14 +1,15 @@
 ﻿using Domain.Models.Admin;
 using Domain.Models.AdminModels;
+using Domain.Models.GestionModels;
 using Microsoft.EntityFrameworkCore;
 using Persistence.FluentConfig.AdminConfig;
+using Persistence.FluentConfig.GestionConfig;
 using Persistence.Repository.IRepositories.Generic;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Transactions;
 
 namespace Persistence.Context
 {
@@ -25,6 +26,7 @@ namespace Persistence.Context
         public DbSet<TipoFormacion> TipoFormacion { get; set; }
         public DbSet<Usuario> Usuario { get; set; }
         public DbSet<Persona> Persona { get; set; }
+        public DbSet<Estudiante> Estudiante { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -85,36 +87,17 @@ namespace Persistence.Context
             new TipoFormacionConfig(modelBuilder.Entity<TipoFormacion>());
             #endregion
 
-            #region GESTION
-            #endregion
+            new EstudianteConfig(modelBuilder.Entity<Estudiante>());
         }
 
         public void Commit()
         {
-            try
-            {
-                using var transactionScope = new TransactionScope();
-                SaveChanges();
-                transactionScope.Complete();
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                ex.Entries.Single().Reload();
-            }
+            SaveChanges();
         }
 
-        public async Task CommitAsync()
+        public Task CommitAsync(CancellationToken cancellationToken = default)
         {
-            try
-            {
-                using var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-                await SaveChangesAsync();
-                transactionScope.Complete();
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                ex.Entries.Single().Reload();
-            }
+            return SaveChangesAsync(cancellationToken);
         }
 
         public DbContext GetContext()

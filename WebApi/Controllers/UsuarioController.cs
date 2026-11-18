@@ -1,52 +1,48 @@
 using Application.Services.AdminServices;
 using Domain.DTOs.AdminDTOs;
 using Domain.DTOs.BaseDTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
-namespace WebApi.Controllers
+namespace WebApi.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public sealed class UsuarioController(IUsuarioService service) : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class UsuarioController : ControllerBase
+    [HttpGet]
+    public async Task<ActionResult<ResponseBase<IEnumerable<UsuarioDto>>>> GetAll()
     {
-        private readonly IUsuarioService _service;
+        var response = await service.GetAllAsync();
+        return StatusCode(response.StatusCode, response);
+    }
 
-        public UsuarioController(IUsuarioService service)
-        {
-            _service = service;
-        }
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<ResponseBase<UsuarioDto>>> GetById(int id)
+    {
+        var response = await service.GetByIdAsync(id);
+        return StatusCode(response.StatusCode, response);
+    }
 
-        [HttpGet]
-        public async Task<ResponseBase<IEnumerable<UsuarioDto>>> GetAll()
-        {
-            return await _service.GetAllAsync();
-        }
+    [HttpPost]
+    public async Task<ActionResult<ResponseBase<int>>> Create(UsuarioCreateRequestDto dto)
+    {
+        var response = await service.AddAsync(dto);
+        return CreatedAtAction(nameof(GetById), new { id = response.Data }, response);
+    }
 
-        [HttpGet("{id}")]
-        public async Task<ResponseBase<UsuarioDto>> GetById(int id)
-        {
-            return await _service.GetByIdAsync(id);
-        }
+    [HttpPut("{id:int}")]
+    public async Task<ActionResult<ResponseBase<bool>>> Update(int id, UsuarioUpdateRequestDto dto)
+    {
+        var response = await service.UpdateAsync(id, dto);
+        return StatusCode(response.StatusCode, response);
+    }
 
-        [HttpPost]
-        public async Task<ActionResult<ResponseBase<int>>> Create([FromBody] UsuarioDto dto)
-        {
-            var data = await _service.AddAsync(dto);
-            return Ok(data);
-        }
-
-        [HttpPut]
-        public async Task<ResponseBase<bool>> Update([FromBody] UsuarioDto dto)
-        {
-            return await _service.UpdateAsync(dto);
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<ResponseBase<UsuarioDto>> Delete(int id)
-        {
-            return await _service.DeleteAsync(id);
-        }
+    [HttpDelete("{id:int}")]
+    public async Task<ActionResult<ResponseBase<UsuarioDto>>> Delete(int id)
+    {
+        var response = await service.DeleteAsync(id);
+        return StatusCode(response.StatusCode, response);
     }
 }

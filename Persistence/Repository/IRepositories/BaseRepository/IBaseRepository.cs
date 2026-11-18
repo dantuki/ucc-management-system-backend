@@ -54,7 +54,7 @@ namespace Persistence.Repository.IRepositories.BaseRepository
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task<TEntity> FindByIdAsync(TId id);
+        Task<TEntity?> FindByIdAsync(TId id);
         /// <summary>
         /// Método asincrono para traer una lista de objetos
         /// </summary>
@@ -63,7 +63,7 @@ namespace Persistence.Repository.IRepositories.BaseRepository
         /// <param name="include"></param>
         /// <param name="includeProperties"></param>
         /// <returns></returns>
-        Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>>? filter = null, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> include = null, string includeProperties = "");
+        Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>>? filter = null, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null, string includeProperties = "");
         /// <summary>
         /// 
         /// </summary>
@@ -94,13 +94,13 @@ namespace Persistence.Repository.IRepositories.BaseRepository
         /// <param name="selector"></param>
         /// <param name="includeProperties"></param>
         /// <returns></returns>
-        Task<TEntity> GetAsync(Expression<Func<TEntity, bool>> predicate = null, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null, Expression<Func<TEntity, TEntity>> selector = null, string includeProperties = "");
+        Task<TEntity?> GetAsync(Expression<Func<TEntity, bool>>? predicate = null, Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null, Expression<Func<TEntity, TEntity>>? selector = null, string includeProperties = "");
         /// <summary>
         /// Método asincrono para validar si existe un objeto
         /// </summary>
         /// <param name="whereCondition"></param>
         /// <returns></returns>
-        Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> whereCondition = null);
+        Task<bool> ExistsAsync(Expression<Func<TEntity, bool>>? whereCondition = null);
 
 
     }

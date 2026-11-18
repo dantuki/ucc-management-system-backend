@@ -1,11 +1,13 @@
 using Application.Services.AdminServices;
 using Domain.Dtos.AdminDtos;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WebApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class PersonaController : ControllerBase
     {
         private readonly IPersonaService _personaService;
@@ -31,10 +33,10 @@ namespace WebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(PersonaDto request)
+        public async Task<IActionResult> Create([FromBody] PersonaDto request)
         {
             var result = await _personaService.CreateAsync(request);
-            return Ok(result);
+            return CreatedAtAction(nameof(GetById), new { id = result.IdPersona }, result);
         }
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, PersonaDto request)

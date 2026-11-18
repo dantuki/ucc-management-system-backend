@@ -37,7 +37,7 @@ namespace Application.Mapping
             CreateMap<EstadoCivil, EstadoCivilDto>().ReverseMap();
 
             // Mapeos de Usuario
-            CreateMap<UsuarioDto, Usuario>().ReverseMap();
+            CreateMap<Usuario, UsuarioDto>();
             
             // Mapeos de Estudiante
             CreateMap<Estudiante, EstudianteDto>().ReverseMap();

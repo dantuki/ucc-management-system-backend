@@ -9,8 +9,9 @@ namespace Application.Services.AdminServices
     {
         Task<ResponseBase<IEnumerable<UsuarioDto>>> GetAllAsync();
         Task<ResponseBase<UsuarioDto>> GetByIdAsync(int id);
-        Task<ResponseBase<int>> AddAsync(UsuarioDto dto);
-        Task<ResponseBase<bool>> UpdateAsync(UsuarioDto dto);
+        Task<ResponseBase<int>> AddAsync(UsuarioCreateRequestDto dto);
+        Task<ResponseBase<bool>> UpdateAsync(int id, UsuarioUpdateRequestDto dto);
+        Task<UsuarioDto?> AuthenticateAsync(string nombreUsuario, string contrasena);
         Task<ResponseBase<UsuarioDto>> DeleteAsync(int id);
     }
 }
