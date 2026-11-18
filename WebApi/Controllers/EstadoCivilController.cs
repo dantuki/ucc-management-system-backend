@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Domain.DTOs.AdminDTOs;
 using Application.Services.AdminServices;
+using Domain.Security;
 using System.Threading.Tasks;
 
 namespace WebApi.Controllers
@@ -19,6 +20,7 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = PermissionCodes.CatalogsRead)]
         public async Task<IActionResult> Get()
         {
             var lista = await _service.GetAllAsync();
@@ -26,6 +28,7 @@ namespace WebApi.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Policy = PermissionCodes.CatalogsRead)]
         public async Task<IActionResult> GetById(int id)
         {
             var item = await _service.GetByIdAsync(id);
@@ -34,6 +37,7 @@ namespace WebApi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = PermissionCodes.CatalogsWrite)]
         public async Task<IActionResult> Post([FromBody] EstadoCivilDto dto)
         {
             if (dto == null) return BadRequest();
@@ -42,6 +46,7 @@ namespace WebApi.Controllers
         }
 
         [HttpPut]
+        [Authorize(Policy = PermissionCodes.CatalogsWrite)]
         public async Task<IActionResult> Put([FromBody] EstadoCivilDto dto)
         {
             if (dto == null) return BadRequest();
@@ -50,6 +55,7 @@ namespace WebApi.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = PermissionCodes.CatalogsWrite)]
         public async Task<IActionResult> Delete(int id)
         {
             await _service.DeleteAsync(id);

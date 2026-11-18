@@ -3,6 +3,7 @@ using Domain.DTOs.AdminDTOs;
 using Domain.DTOs.BaseDTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Domain.Security;
 
 namespace WebApi.Controllers;
 
@@ -12,6 +13,7 @@ namespace WebApi.Controllers;
 public sealed class UsuarioController(IUsuarioService service) : ControllerBase
 {
     [HttpGet]
+    [Authorize(Policy = PermissionCodes.UsersRead)]
     public async Task<ActionResult<ResponseBase<IEnumerable<UsuarioDto>>>> GetAll()
     {
         var response = await service.GetAllAsync();
@@ -19,6 +21,7 @@ public sealed class UsuarioController(IUsuarioService service) : ControllerBase
     }
 
     [HttpGet("{id:int}")]
+    [Authorize(Policy = PermissionCodes.UsersRead)]
     public async Task<ActionResult<ResponseBase<UsuarioDto>>> GetById(int id)
     {
         var response = await service.GetByIdAsync(id);
@@ -26,6 +29,7 @@ public sealed class UsuarioController(IUsuarioService service) : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = PermissionCodes.UsersWrite)]
     public async Task<ActionResult<ResponseBase<int>>> Create(UsuarioCreateRequestDto dto)
     {
         var response = await service.AddAsync(dto);
@@ -33,6 +37,7 @@ public sealed class UsuarioController(IUsuarioService service) : ControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Policy = PermissionCodes.UsersWrite)]
     public async Task<ActionResult<ResponseBase<bool>>> Update(int id, UsuarioUpdateRequestDto dto)
     {
         var response = await service.UpdateAsync(id, dto);
@@ -40,6 +45,7 @@ public sealed class UsuarioController(IUsuarioService service) : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Policy = PermissionCodes.UsersWrite)]
     public async Task<ActionResult<ResponseBase<UsuarioDto>>> Delete(int id)
     {
         var response = await service.DeleteAsync(id);

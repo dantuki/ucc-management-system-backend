@@ -2,6 +2,7 @@ using Application.Services.AdminServices;
 using Domain.DTOs.AdminDTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Domain.Security;
 using System.Threading.Tasks;
 
 namespace WebApi.Controllers
@@ -19,6 +20,7 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = PermissionCodes.CatalogsRead)]
         public async Task<IActionResult> GetAll()
         {
             var response = await _generoService.GetAllAsync();
@@ -26,6 +28,7 @@ namespace WebApi.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Policy = PermissionCodes.CatalogsRead)]
         public async Task<IActionResult> GetById(int id)
         {
             var response = await _generoService.GetByIdAsync(id);
@@ -33,6 +36,7 @@ namespace WebApi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = PermissionCodes.CatalogsWrite)]
         public async Task<IActionResult> Add([FromBody] GeneroDto entity)
         {
             var response = await _generoService.AddAsync(entity);
@@ -40,6 +44,7 @@ namespace WebApi.Controllers
         }
 
         [HttpPut]
+        [Authorize(Policy = PermissionCodes.CatalogsWrite)]
         public async Task<IActionResult> Update([FromBody] GeneroDto entity)
         {
             var response = await _generoService.UpdateAsync(entity);
@@ -47,6 +52,7 @@ namespace WebApi.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = PermissionCodes.CatalogsWrite)]
         public async Task<IActionResult> Delete(int id)
         {
             var response = await _generoService.DeleteAsync(id);
